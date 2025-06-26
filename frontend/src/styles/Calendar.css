@@ -1,0 +1,67 @@
+.calendar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+}
+
+.square-div {
+  width: 90vw;
+  height: 80vh;
+  border: 1px solid black;
+  border-radius: 1rem;
+  background-color: white;
+  padding: 1rem;
+}
+
+.month-div {
+  border: 1px solid black;
+  height: 10vh;
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+}
+
+.week-div {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 10vh;
+  gap: 1rem;
+
+}
+
+.day-div {
+  border: 1px solid black;
+  border-radius: 1rem;
+}
+
+.month-div-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.nav-button {
+  cursor: pointer;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  font-weight: bold;
+  user-select: none;
+  /* 텍스트 선택 방지 */
+  transition: background-color 0.2s;
+}
+
+.nav-button:hover {
+  background-color: #e0e0e0;
+}
+
+.nav-button-left::before {
+  content: '<';
+}
+
+.nav-button-right::before {
+  content: '>';
+}
