@@ -1,0 +1,16 @@
+services:
+  workspace:
+    container_name: plainit_fullstack_devcontainer_workspace
+    image: mcr.microsoft.com/devcontainers/base:bullseye
+
+    ports:
+      - 5173:5173
+      - 3000:3000
+
+    environment:
+      TZ: "Asia/Seoul"
+
+    volumes:
+      # Workspace Cache
+      - ..:${containerWorkspaceFolder}:cached
+    command: sleep infinity
