@@ -13,34 +13,85 @@
   border-radius: 1rem;
   background-color: white;
   padding: 1rem;
+  display: flex;
+  flex-direction: column;
 }
 
-.month-div {
+.calendar-header {
   border: 1px solid black;
-  height: 10vh;
-  margin-bottom: 1rem;
   border-radius: 1rem;
+  flex: 0.2;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+.month-div-inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 10px;
+  gap: .5rem;
+  width: 100%;
+  height: 100%;
 }
 
-.week-div {
+.calendar-body {
+  flex: 0.8;
+}
+.calendar-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.inner-header{
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  height: 10vh;
   gap: 1rem;
+  flex: 0.2;
+  margin-bottom: 1rem;
+}
 
+.inner-header > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #666;
+}
+
+/* 일요일 (첫 번째) 빨간색 */
+.inner-header > div:first-child {
+  color: #dc3545;
+}
+
+/* 토요일 (마지막) 파란색 */
+.inner-header > div:last-child {
+  color: #007bff;
+}
+
+.inner-body{
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  flex: 0.8;
+  gap: 1rem;
 }
 
 .day-div {
   border: 1px solid black;
   border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.month-div-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 10px;
+.day-div:hover {
+  background-color: #f0f0f0;
 }
+
+
 
 .nav-button {
   cursor: pointer;
