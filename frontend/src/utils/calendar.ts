@@ -59,7 +59,20 @@ export const getCalendarDefaultCell = () =>{
     return 35;
 }
 
+export const getNowYearAndMonth = () =>{
+    return {
+        nowYear : new Date().getFullYear(),
+        nowMonth : new Date().getMonth() + 1
+    }
+}
 
+
+/**
+ * 캘린더 세팅 
+ * @param year 년도 (예: 2025)
+ * @param month 월 (예: 6)
+ * @returns 캘린더 세팅 결과
+ */
 
 export const calendarSetting = (year: number, month: number): CalendarCellType[] => {
     const cellCount = getCalendarDefaultCell();

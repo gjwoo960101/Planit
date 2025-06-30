@@ -1,9 +1,30 @@
+import { useState } from "react";
 import "../../styles/Calendar.css";
-import { calendarSetting } from "../../utils/calendar";
+import { calendarSetting, getNowYearAndMonth } from "../../utils/calendar";
 import { CalendarCell } from "./CalendarCell";
 
 const Calendar = () => {
-  const calendarCell = calendarSetting(2025, 6);
+  const {nowYear,nowMonth} = getNowYearAndMonth();
+  const [year,setYear] = useState(nowYear);
+  const [month,setMonth] = useState(nowMonth);
+
+  const handleYearChange = (changeYear : number) =>{
+    setYear(year + changeYear);
+  }
+  const handleMonthChange = (changeMonth : number) =>{
+    if(changeMonth < 1){
+      setYear(year - 1);
+      setMonth(12);
+    }else if(changeMonth > 12){
+      setYear(year + 1);
+      setMonth(1);
+    }else{
+      setMonth(changeMonth);
+    }
+  }
+
+  
+  const calendarCell = calendarSetting(year, month);
   return (
     <>
       <div className="calendar-container">
@@ -11,9 +32,9 @@ const Calendar = () => {
         <div className="square-div">
           <div className="calendar-header">
             <div className="month-div-inner">
-              <span className="nav-button nav-button-left"></span>
-              <h2>{"2025.06"}</h2>
-              <span className="nav-button nav-button-right"></span>
+              <span className="nav-button nav-button-left" onClick={()=>handleMonthChange(month-1)}></span>
+              <h2>{year+"."+month}</h2>
+              <span className="nav-button nav-button-right" onClick={()=>handleMonthChange(month+1)}></span>
             </div>
           </div>
           <div className="calendar-body">
