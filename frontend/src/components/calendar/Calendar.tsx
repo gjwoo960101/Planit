@@ -1,9 +1,9 @@
 import "../../styles/Calendar.css";
-import { getCalendarDefaultCell, getMonthLastDay } from "../../utils/calendar";
+import { calendarSetting } from "../../utils/calendar";
+import { CalendarCell } from "./CalendarCell";
 
 const Calendar = () => {
-  const defaultCell = getCalendarDefaultCell();
-  //const lastDay = getMonthLastDay(2025, 6);
+  const calendarCell = calendarSetting(2025, 6);
   return (
     <>
       <div className="calendar-container">
@@ -28,10 +28,8 @@ const Calendar = () => {
                 <div>{"토"}</div>
               </div>
               <div className="inner-body">
-                {Array.from({ length: defaultCell }).map((_, index) => (
-                  <div className="day-div" key={index}>
-                    {index + 1}
-                  </div>
+                {calendarCell.map((cell, index) => (
+                  <CalendarCell data={cell} key={index} />
                 ))}
               </div>
             </div>

@@ -91,6 +91,30 @@
   background-color: #f0f0f0;
 }
 
+/* 현재 달 */
+.day-div.current-month {
+    background-color: white;
+    color: black;
+}
+
+/* 이전/다음 달 */
+.day-div.prev-month,
+.day-div.next-month {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    opacity: 0.6;
+}
+
+/* 호버 효과 */
+.day-div.current-month:hover {
+    background-color: #e9ecef;
+}
+
+.day-div.prev-month:hover,
+.day-div.next-month:hover {
+    opacity: 0.8;
+}
+
 
 
 .nav-button {

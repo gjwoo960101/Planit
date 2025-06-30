@@ -1,3 +1,4 @@
+import { CalendarCellType } from "../types/calendarType";
 
 /**
  * 입력한 달의 마지막날짜 반환
@@ -10,12 +11,29 @@ export const getMonthLastDay = (year: number, month: number) => {
 }
 
 /**
+ * 입력한 달의 마지막날짜 -minusNumber 반환
+ * @param year 년도 (예: 2025)
+ * @param month 월 (예: 6)
+ * @param minusNumber 5
+ * @returns 마지막 날짜 -5 (예: 25) 
+ */
+export const getPrevMonthLastDay = (year: number, month: number,minusNumber: number) =>{
+    if(month -1 < 1){
+        return new Date(year,0,0).getDate() - minusNumber;
+    }
+    return new Date(year,month-1,0).getDate() - minusNumber;
+}
+
+/**
  *  해당 월 1일의 요일을 반환
  *  @param year 년도 (예: 2025)
  *  @param month 월 (예: 6)
  *  @returns 요일 (0: 일요일, 1: 월요일, ..., 6: 토요일)
  */
 export const getMonthFirstDay = (year: number, month: number) =>{
+    if(month -1 < 1){
+        return new Date(year,0,0).getDay();
+    }
     return new Date(year,month -1 , 1).getDay();
 }
 
@@ -31,6 +49,8 @@ export const getMonthLastDayIndex = (year: number, month: number) =>{
     return  new Date(year, month, 0).getDay();
 }
 
+
+
 /**
  * 캘린더의 고정된 셀 갯수 반환
  * @returns 35
@@ -41,15 +61,40 @@ export const getCalendarDefaultCell = () =>{
 
 
 
-const calendarSetting = (year: number, month: number) =>{
+export const calendarSetting = (year: number, month: number): CalendarCellType[] => {
     const cellCount = getCalendarDefaultCell();
-    const lastDay = getMonthLastDay(year,month);
-    const firstDayIndex = getMonthFirstDay(year,month);
+    const lastDay = getMonthLastDay(year, month);
+    const firstDayIndex = getMonthFirstDay(year, month);
     const lastDayIndex = firstDayIndex + (lastDay - 1);
-    let cell = [];
-    for(let i = 0; i < cellCount; i++){
-
+    const cell: CalendarCellType[] = [];
+    
+    for (let i = 0; i < cellCount; i++) {
+        if (i < firstDayIndex) {
+            // 이전달 날짜들
+            const date = getPrevMonthLastDay(year, month, firstDayIndex - 1 - i);
+            
+            cell.push({
+                isPrevMonth: true,
+                isNextMonth: false,
+                date: date
+            });
+        } else if (i <= lastDayIndex) {
+            // 현재달 날짜들
+            const date = i - firstDayIndex + 1;
+            cell.push({
+                isPrevMonth: false,
+                isNextMonth: false,
+                date: date
+            });
+        } else {
+            // 다음달 날짜들
+            const date = i - lastDayIndex;
+            cell.push({
+                isPrevMonth: false,
+                isNextMonth: true,
+                date: date
+            });
+        }
     }
-
+    return cell;
 }
-calendarSetting(2025,6);
