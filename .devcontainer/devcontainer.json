@@ -1,25 +1,23 @@
 {
-    "name": "Plainit Fullstack Dev Container",
-    "dockerComposeFile": "docker-compose.dev.yml",
-    "service": "workspace",
-    "workspaceFolder": "/home/vscode/${localWorkspaceFolderBasename}",
-    "features": {
-        "ghcr.io/devcontainers/features/node:1": {},
-        //"ghcr.io/devcontainers/features/docker-in-docker:2" :{}
-    },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "github.vscode-github-actions",
-                "ms-vscode.vscode-eslint",
-                "esbenp.prettier-vscode",
-                "ms-vscode.vscode-typescript-next"
-            ]
-        }
-    },
-    "forwardPorts": [
-        5173,
-        3000
-    ],
-    "initializeCommand": "bash ./.devcontainer/commands/initializeCommand.sh ${localWorkspaceFolder} ${containerWorkspaceFolder} ${localWorkspaceFolderBasename} ${containerWorkspaceFolderBasename}"
+  "name": "Plainit Fullstack Dev Container",
+  "dockerComposeFile": "docker-compose.dev.yml",
+  "service": "workspace",
+  "workspaceFolder": "/home/vscode/${localWorkspaceFolderBasename}",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {}
+    //"ghcr.io/devcontainers/features/docker-in-docker:2" :{}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "github.vscode-github-actions",
+        "ms-vscode.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next"
+      ]
+    }
+  },
+  "forwardPorts": [5173, 3000],
+  "initializeCommand": "bash ./.devcontainer/commands/initializeCommand.sh ${localWorkspaceFolder} ${containerWorkspaceFolder} ${localWorkspaceFolderBasename} ${containerWorkspaceFolderBasename}",
+  "postCreateCommand": "bash ./.devcontainer/commands/updateCommand.sh"
 }

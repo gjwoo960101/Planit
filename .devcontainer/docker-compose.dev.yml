@@ -9,6 +9,8 @@ services:
 
     environment:
       TZ: "Asia/Seoul"
+    env_file:
+      - .env.local
 
     volumes:
       # Workspace Cache
