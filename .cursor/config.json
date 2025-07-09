@@ -1,0 +1,4 @@
+{
+  "defaultPromptPrefix": "project-rules.mdc 파일 내용을 참고해 주세요.",
+  "contextFiles": ["project-rules.mdc"]
+}
