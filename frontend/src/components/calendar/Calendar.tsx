@@ -7,6 +7,7 @@ import {
 } from "../../utils/calendar";
 import { CalendarCell } from "./CalendarCell";
 import { CalendarModal } from "../modal/CalendarModal";
+import { ScheduleMenu } from "./ScheduleMenu";
 import {
   HolidayInfo,
   getKoreanHolidays,
@@ -19,6 +20,7 @@ const Calendar = () => {
   const [year, setYear] = useState(nowYear);
   const [month, setMonth] = useState(nowMonth);
   const [holidays, setHolidays] = useState<HolidayInfo[]>([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // 공휴일 데이터 로드
   useEffect(() => {
@@ -50,34 +52,84 @@ const Calendar = () => {
     }
   };
 
+  // 년도 변경 핸들러 추가
+  const handleYearChange = (changeYear: number) => {
+    setYear(changeYear);
+  };
+
   const goToToday = () => {
     setYear(nowYear);
     setMonth(nowMonth);
+  };
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleMenuClose = () => {
+    setIsMenuOpen(false);
   };
 
   const calendarCell = calendarSetting(year, month);
 
   return (
     <>
-      <div className="calendar-container">
+      {/* 메뉴 버튼 */}
+      <button
+        className={`menu-button ${isMenuOpen ? "active" : ""}`}
+        onClick={handleMenuToggle}
+        title={isMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
+      >
+        <div className="menu-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </button>
+
+      <div className={`calendar-container ${isMenuOpen ? "menu-open" : ""}`}>
         {/* 캘린더 컨테이너 */}
         <div className="square-div">
           <div className="calendar-header">
             <div className="month-div-inner">
               <div className="nav-section">
+                {/* 년도 네비게이션 추가 */}
+                <div className="year-nav">
+                  <span
+                    className="nav-button nav-button-year-left"
+                    onClick={() => handleYearChange(year - 1)}
+                    title="이전 년도"
+                  ></span>
+                </div>
+
                 <span
                   className="nav-button nav-button-left"
                   onClick={() => handleMonthChange(month - 1)}
                   title="이전 달"
                 ></span>
-                <h2>
-                  {year}년 {month}월
-                </h2>
+
+                <div className="date-display-container">
+                  {/* 년월 표시 */}
+                  <div className="date-display">
+                    <span className="year-display">{year}년</span>
+                    <span className="month-display">{month}월</span>
+                  </div>
+                </div>
+
                 <span
                   className="nav-button nav-button-right"
                   onClick={() => handleMonthChange(month + 1)}
                   title="다음 달"
                 ></span>
+
+                {/* 년도 네비게이션 추가 */}
+                <div className="year-nav">
+                  <span
+                    className="nav-button nav-button-year-right"
+                    onClick={() => handleYearChange(year + 1)}
+                    title="다음 년도"
+                  ></span>
+                </div>
               </div>
               <div className="today-section">
                 {(year !== nowYear || month !== nowMonth) && (
@@ -119,6 +171,10 @@ const Calendar = () => {
           </div>
         </div>
       </div>
+
+      {/* 스케줄 메뉴 */}
+      <ScheduleMenu isOpen={isMenuOpen} onClose={handleMenuClose} />
+
       <CalendarModal />
     </>
   );
