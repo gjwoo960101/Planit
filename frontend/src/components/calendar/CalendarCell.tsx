@@ -1,9 +1,7 @@
 import { useModalStore } from "../modal/ModalStore";
 import { CalendarCellType } from "../../types/calendarType";
-import {
-  getTodosFromStorage,
-  processRepeatingTodos,
-} from "../../utils/calendarUtils";
+import { processRepeatingTodos } from "../../utils/calendarUtils";
+import { useTodoStore } from "../../stores/todoStore";
 import { useMemo, useEffect, useState } from "react";
 import { HolidayInfo } from "../../utils/holidays";
 
@@ -27,6 +25,7 @@ export const CalendarCell = ({
   holidays,
 }: CalendarCellProps) => {
   const openModal = useModalStore((state) => state.openModal);
+  const { getTodos } = useTodoStore();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const stateClass = data.isPrevMonth
@@ -74,41 +73,74 @@ export const CalendarCell = ({
 
   const dateString = `${actualMonth}월 ${data.date}일`;
 
-  // localStorage 변경 감지를 위한 effect
+  // 데이터 변경 감지를 위한 effect
   useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key && event.key.includes(dateString)) {
+    // 컴포넌트 마운트 시 초기 데이터 로드를 위한 refresh
+    setRefreshKey((prev) => prev + 1);
+
+    // JSON 데이터 변경사항을 감지하기 위한 커스텀 이벤트들
+    const handleDataChange = (event: CustomEvent) => {
+      // 특정 날짜 변경이거나 전체 데이터 변경인 경우
+      if (
+        event.detail.date === dateString ||
+        event.detail.date === "multiple" ||
+        event.detail.date === "all" ||
+        event.detail.key === "test-data-generated"
+      ) {
         setRefreshKey((prev) => prev + 1);
       }
     };
 
-    // storage 이벤트 리스너 추가
-    window.addEventListener("storage", handleStorageChange);
-
-    // 같은 탭에서의 변경사항을 감지하기 위한 커스텀 이벤트
-    const handleCustomStorageChange = (event: CustomEvent) => {
-      if (event.detail.key && event.detail.key.includes(dateString)) {
-        setRefreshKey((prev) => prev + 1);
-      }
+    const handleDataLoad = () => {
+      // 데이터 로드 시 전체 새로고침
+      setRefreshKey((prev) => prev + 1);
     };
 
+    const handleDataMigrated = () => {
+      // 마이그레이션 완료 시 전체 새로고침
+      setRefreshKey((prev) => prev + 1);
+    };
+
+    const handleDataCleared = () => {
+      // 데이터 삭제 시 전체 새로고침
+      setRefreshKey((prev) => prev + 1);
+    };
+
+    // 이벤트 리스너 추가
+    window.addEventListener("data-changed", handleDataChange as EventListener);
+    window.addEventListener("data-loaded", handleDataLoad as EventListener);
     window.addEventListener(
-      "local-storage-changed",
-      handleCustomStorageChange as EventListener
+      "data-migrated",
+      handleDataMigrated as EventListener
     );
+    window.addEventListener("data-cleared", handleDataCleared as EventListener);
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener(
-        "local-storage-changed",
-        handleCustomStorageChange as EventListener
+        "data-changed",
+        handleDataChange as EventListener
+      );
+      window.removeEventListener(
+        "data-loaded",
+        handleDataLoad as EventListener
+      );
+      window.removeEventListener(
+        "data-migrated",
+        handleDataMigrated as EventListener
+      );
+      window.removeEventListener(
+        "data-cleared",
+        handleDataCleared as EventListener
       );
     };
   }, [dateString]);
 
   // 각 날짜의 일정 개수를 계산
-  const todoCount = useMemo(() => {
-    const storedTodos = getTodosFromStorage(dateString);
+  const [todoCount, setTodoCount] = useState(0);
+
+  useEffect(() => {
+    // Zustand 스토어에서 직접 할일 목록 가져오기
+    const storedTodos = getTodos(dateString);
     const repeatingTodos = processRepeatingTodos(dateString);
 
     // 반복 일정 중 기존에 없는 것만 카운트
@@ -122,8 +154,8 @@ export const CalendarCell = ({
         )
     );
 
-    return storedTodos.length + newRepeatingTodos.length;
-  }, [dateString, refreshKey]);
+    setTodoCount(storedTodos.length + newRepeatingTodos.length);
+  }, [dateString, refreshKey, getTodos]);
 
   // 일정이 있는지 여부에 따른 클래스
   const hasEventsClass = todoCount > 0 ? "has-events" : "";

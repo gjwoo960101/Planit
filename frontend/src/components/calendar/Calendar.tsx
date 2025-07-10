@@ -13,6 +13,7 @@ import {
   getKoreanHolidays,
   preloadCurrentYearHolidays,
 } from "../../utils/holidays";
+import { initializeStorage } from "../../utils/dataStorage";
 
 const Calendar = () => {
   const { nowYear, nowMonth } = getNowYearAndMonth();
@@ -21,6 +22,12 @@ const Calendar = () => {
   const [month, setMonth] = useState(nowMonth);
   const [holidays, setHolidays] = useState<HolidayInfo[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // 초기 데이터 마이그레이션 및 로드
+  useEffect(() => {
+    // localStorage에서 JSON으로 데이터 마이그레이션
+    initializeStorage();
+  }, []);
 
   // 공휴일 데이터 로드
   useEffect(() => {

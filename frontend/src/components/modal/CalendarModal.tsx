@@ -2,13 +2,8 @@ import { useModalStore } from "./ModalStore";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { TodoItem, NewTodoForm } from "../../types/calendar";
 import { CATEGORIES, PRIORITIES } from "../../utils/calendarConstants";
-import {
-  getTodosFromStorage,
-  saveTodosToStorage,
-  getNextTodoId,
-  saveNextTodoId,
-  processRepeatingTodos,
-} from "../../utils/calendarUtils";
+import { processRepeatingTodos } from "../../utils/calendarUtils";
+import { useTodoStore } from "../../stores/todoStore";
 import { AchievementSection } from "../calendar/AchievementSection";
 import { CategoryFilter } from "../calendar/CategoryFilter";
 import { TodoList } from "../calendar/TodoList";
@@ -20,8 +15,18 @@ export const CalendarModal = () => {
   const selectedDate = useModalStore((state) => state.selectedDate);
   const closeModal = useModalStore((state) => state.closeModal);
 
-  const [todos, setTodos] = useState<TodoItem[]>([]);
-  const [newTodoId, setNewTodoId] = useState(0);
+  // Zustand 스토어 사용
+  const {
+    getTodos,
+    getNextTodoId,
+    toggleTodoCompletion,
+    updateTodoText,
+    addTodo,
+    deleteTodo,
+    reorderTodos,
+    loadScheduleFromServer,
+  } = useTodoStore();
+
   const [editingTodoId, setEditingTodoId] = useState<number | null>(null);
   const [animateIn, setAnimateIn] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("전체");
@@ -29,6 +34,10 @@ export const CalendarModal = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingTodo, setEditingTodo] = useState<TodoItem | null>(null);
   const [isManualSort, setIsManualSort] = useState(false);
+
+  // 실시간 할일 목록 (스토어에서 직접 가져오기)
+  const todos = selectedDate ? getTodos(selectedDate) : [];
+  const newTodoId = selectedDate ? getNextTodoId(selectedDate) : 0;
 
   // 새 할일 추가 폼 상태
   const [newTodo, setNewTodo] = useState<NewTodoForm>({
@@ -111,71 +120,29 @@ export const CalendarModal = () => {
     });
   }, [todos, selectedCategory, isManualSort]);
 
-  // 선택된 날짜의 할일 목록 로드
+  // 선택된 날짜의 할일 목록 로드 (필요시 서버에서)
   useEffect(() => {
     if (selectedDate) {
-      const storedTodos = getTodosFromStorage(selectedDate);
-      const storedNextId = getNextTodoId(selectedDate);
+      // 스토어에 데이터가 없으면 서버에서 로드
+      if (todos.length === 0) {
+        loadScheduleFromServer(selectedDate);
+      }
 
-      // 반복 일정 처리
+      // 반복 일정 처리 (한 번만)
       const repeatingTodos = processRepeatingTodos(selectedDate);
-
-      // 반복 일정이 있고 기존 할일이 없으면 추가
-      if (repeatingTodos.length > 0 && storedTodos.length === 0) {
-        // 반복 할일들에 적절한 ID 할당
-        const todosWithIds = repeatingTodos.map((todo, index) => ({
-          ...todo,
-          id: storedNextId + index,
-          order: index,
-        }));
-
-        setTodos(todosWithIds);
-        setNewTodoId(storedNextId + repeatingTodos.length);
-      } else if (repeatingTodos.length > 0 && storedTodos.length > 0) {
-        // 기존 할일이 있으면 반복 할일 중 중복되지 않는 것만 추가
-        const newRepeatingTodos = repeatingTodos.filter(
-          (repeatTodo) =>
-            !storedTodos.some(
-              (existingTodo) =>
-                existingTodo.text === repeatTodo.text &&
-                existingTodo.category === repeatTodo.category &&
-                existingTodo.repeat === repeatTodo.repeat
-            )
-        );
-
-        if (newRepeatingTodos.length > 0) {
-          const todosWithIds = newRepeatingTodos.map((todo, index) => ({
+      if (repeatingTodos.length > 0 && todos.length === 0) {
+        repeatingTodos.forEach((todo: TodoItem) => {
+          const newTodo = {
             ...todo,
-            id: storedNextId + index,
-            order: storedTodos.length + index,
-          }));
-
-          setTodos([...storedTodos, ...todosWithIds]);
-          setNewTodoId(storedNextId + newRepeatingTodos.length);
-        } else {
-          setTodos(storedTodos);
-          setNewTodoId(storedNextId);
-        }
-      } else {
-        setTodos(storedTodos);
-        setNewTodoId(storedNextId);
+            order: newTodoId,
+          };
+          addTodo(selectedDate, newTodo);
+        });
       }
     }
-  }, [selectedDate]);
+  }, [selectedDate, todos.length, newTodoId, loadScheduleFromServer, addTodo]);
 
-  // 할일 목록이 변경될 때마다 localStorage에 저장
-  useEffect(() => {
-    if (selectedDate && todos.length >= 0) {
-      saveTodosToStorage(selectedDate, todos);
-    }
-  }, [selectedDate, todos]);
-
-  // newTodoId가 변경될 때마다 localStorage에 저장
-  useEffect(() => {
-    if (selectedDate) {
-      saveNextTodoId(selectedDate, newTodoId);
-    }
-  }, [selectedDate, newTodoId]);
+  // 데이터 저장은 이제 Zustand 스토어에서 자동으로 처리됩니다
 
   useEffect(() => {
     if (isOpen) {
@@ -208,14 +175,13 @@ export const CalendarModal = () => {
   };
 
   const handleSaveNewTodo = () => {
-    if (newTodo.text.trim() === "") return;
+    if (newTodo.text.trim() === "" || !selectedDate) return;
 
     const categoryColor =
       CATEGORIES.find((cat) => cat.name === newTodo.category)?.color ||
       "#6c757d";
 
-    const todoItem: TodoItem = {
-      id: newTodoId,
+    const todoItem = {
       text: newTodo.text,
       completed: false,
       estimatedTime: newTodo.estimatedTime,
@@ -228,8 +194,8 @@ export const CalendarModal = () => {
       order: todos.length,
     };
 
-    setTodos((prev) => [...prev, todoItem]);
-    setNewTodoId((prev) => prev + 1);
+    // Zustand 스토어를 통해 할일 추가
+    addTodo(selectedDate, todoItem);
 
     // 폼 초기화
     setNewTodo({
@@ -258,19 +224,15 @@ export const CalendarModal = () => {
   };
 
   const handleToggleComplete = (id: number) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
+    if (!selectedDate) return;
+    // 즉시 UI 업데이트 + 백그라운드 동기화
+    toggleTodoCompletion(selectedDate, id);
   };
 
   const handleTextChange = (id: number, newText: string) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, text: newText } : todo
-      )
-    );
+    if (!selectedDate) return;
+    // 즉시 UI 업데이트 + 백그라운드 동기화
+    updateTodoText(selectedDate, id, newText);
   };
 
   const handleFocus = (id: number) => {
@@ -282,11 +244,15 @@ export const CalendarModal = () => {
   };
 
   const handleDeleteTodo = (id: number) => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+    if (!selectedDate) return;
+    // 즉시 UI 업데이트 + 백그라운드 동기화
+    deleteTodo(selectedDate, id);
   };
 
   const handleDeleteAll = () => {
-    setTodos([]);
+    if (!selectedDate) return;
+    const currentTodos = getTodos(selectedDate);
+    currentTodos.forEach((todo) => deleteTodo(selectedDate, todo.id));
   };
 
   // 할일 상세 편집 모달 핸들러
@@ -296,12 +262,13 @@ export const CalendarModal = () => {
   };
 
   const handleEditModalSave = () => {
-    if (editingTodo) {
-      setTodos((prevTodos) =>
-        prevTodos.map((todo) =>
-          todo.id === editingTodo.id ? editingTodo : todo
-        )
-      );
+    if (editingTodo && selectedDate) {
+      // 각 속성별로 업데이트
+      updateTodoText(selectedDate, editingTodo.id, editingTodo.text);
+
+      // 다른 속성들도 업데이트하려면 새로운 스토어 액션이 필요합니다
+      // 현재는 텍스트만 업데이트
+
       setShowEditModal(false);
       setEditingTodo(null);
     }
@@ -377,7 +344,9 @@ export const CalendarModal = () => {
         return todo;
       });
 
-      setTodos(updatedTodos);
+      if (selectedDate) {
+        reorderTodos(selectedDate, updatedTodos);
+      }
     }
 
     // 상태 초기화

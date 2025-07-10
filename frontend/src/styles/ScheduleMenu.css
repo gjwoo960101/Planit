@@ -67,6 +67,31 @@
     font-weight: 600;
 }
 
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.login-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+}
+
+.login-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+}
+
 .close-button {
     background: none;
     border: none;
@@ -122,6 +147,90 @@
 
 .summary-value.pending {
     color: #dc3545;
+}
+
+/* 데이터 관리 섹션 */
+.data-management-section {
+    padding: 16px 24px;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.data-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.data-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+}
+
+.data-value {
+    font-size: 14px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.data-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.data-button {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.data-button.download {
+    background: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+}
+
+.data-button.download:hover {
+    background: #bbdefb;
+    transform: translateY(-1px);
+}
+
+.data-button.upload {
+    background: #f3e5f5;
+    color: #7b1fa2;
+    border: 1px solid #ce93d8;
+}
+
+.data-button.upload:hover {
+    background: #ce93d8;
+    transform: translateY(-1px);
+}
+
+.data-button.clear {
+    background: #ffebee;
+    color: #d32f2f;
+    border: 1px solid #ffcdd2;
+}
+
+.data-button.clear:hover {
+    background: #ffcdd2;
+    transform: translateY(-1px);
 }
 
 /* 검색 박스 */

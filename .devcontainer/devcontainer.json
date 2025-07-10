@@ -4,8 +4,8 @@
   "service": "workspace",
   "workspaceFolder": "/home/vscode/${localWorkspaceFolderBasename}",
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {}
-    //"ghcr.io/devcontainers/features/docker-in-docker:2" :{}
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
   "customizations": {
     "vscode": {

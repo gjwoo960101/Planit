@@ -455,7 +455,7 @@
 
 .nav-button {
   cursor: pointer;
-  padding: 12px 16px;
+  padding: 0 16px;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
@@ -465,6 +465,11 @@
   transition: all 0.2s ease;
   backdrop-filter: blur(8px);
   font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 25px;
+  line-height: 1;
 }
 
 .nav-button:hover {
@@ -478,12 +483,22 @@
 
 .nav-button-left::before {
   content: '‹';
-  font-size: 20px;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-1px);
 }
 
 .nav-button-right::before {
   content: '›';
-  font-size: 20px;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-1px);
 }
 
 /* 년도 네비게이션 버튼 스타일 */
@@ -492,18 +507,26 @@
   align-items: center;
 }
 
-.nav-button-year-left::before,
-.nav-button-year-right::before {
-  font-size: 16px;
-  font-weight: bold;
-}
-
 .nav-button-year-left::before {
   content: '‹‹';
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-1px);
 }
 
 .nav-button-year-right::before {
   content: '››';
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-1px);
 }
 
 /* 오늘 버튼 스타일 */
@@ -615,34 +638,88 @@
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .calendar-container {
-    padding: 10px;
+    padding: 0;
+    padding-top: 80px;
+    /* 메뉴버튼(48px) + top(15px) + 여유공간(17px) */
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    height: calc(100vh - 80px);
+    overflow: hidden;
+  }
+
+  .calendar-header {
+    min-height: 80px;
+    height: auto;
+    flex: none;
+    margin-bottom: 15px;
   }
 
   .square-div {
-    width: 95vw;
-    height: 85vh;
-    padding: 15px;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    max-width: none;
+    min-height: auto;
   }
 
+  .month-div-inner {
+    padding: 0 5px;
+    flex-direction: column;
+    gap: 10px;
+    height: auto;
+    min-height: 70px;
+    justify-content: center;
+  }
+
+  .date-display-container {
+    order: 1;
+    justify-content: center;
+  }
+
+  .nav-section {
+    position: static;
+    transform: none;
+    gap: 12px;
+    justify-content: center;
+    order: 2;
+  }
+
+  .today-section {
+    order: 3;
+    justify-content: center;
+    margin-left: 0;
+    min-width: auto;
+    margin-top: 5px;
+  }
+
+  /* 모바일 캘린더 바디 스타일 */
   .inner-body {
-    gap: 8px;
+    gap: 6px;
+    padding: 4px;
   }
 
   .day-div {
-    min-height: 60px;
+    min-height: 50px;
+    border-radius: 8px;
   }
 
   .day-number {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .month-div-inner h2 {
-    font-size: 20px;
+    font-size: 18px;
   }
 
+  /* 모바일 네비게이션 버튼 */
   .nav-button {
-    padding: 10px 12px;
+    padding: 0 12px;
     font-size: 14px;
+    height: 22px;
+    line-height: 1;
+    min-width: 32px;
+    touch-action: manipulation;
   }
 
   .today-button {
@@ -650,26 +727,52 @@
     padding: 6px 12px;
   }
 
-  .nav-section {
-    gap: 15px;
-  }
-
-  .today-section {
-    min-width: 60px;
-  }
-
-  .month-div-inner {
-    padding: 0 10px;
-  }
-
   /* 모바일에서 년도/월 표시 스타일 조정 */
   .date-display {
     gap: 6px;
+    justify-content: center;
   }
 
   .year-display,
   .month-display {
     font-size: 18px;
+    line-height: 1.2;
+  }
+
+  /* 모바일에서 년도 네비게이션 컨테이너 */
+  .year-nav {
+    display: flex;
+    align-items: center;
+  }
+
+  /* 모바일에서 화살표 아이콘 크기 조정 */
+  .nav-button-left::before,
+  .nav-button-right::before,
+  .nav-button-year-left::before,
+  .nav-button-year-right::before {
+    font-size: 16px;
+    transform: translateY(-0.5px);
+  }
+
+  /* 모바일에서 이벤트 인디케이터 크기 조정 */
+  .event-indicator {
+    min-width: 18px;
+    height: 18px;
+    font-size: 11px;
+    top: 4px;
+    right: 4px;
+  }
+
+  /* 모바일에서 메뉴 버튼 크기 조정 */
+  .menu-button {
+    width: 48px;
+    height: 48px;
+    top: 15px;
+    right: 15px;
+  }
+
+  .menu-icon span {
+    width: 18px;
   }
 }
 
@@ -1965,5 +2068,158 @@
   .time-unit {
     font-size: 12px;
     margin-right: 4px;
+  }
+}
+
+/* 매우 작은 모바일 화면 (320px 이하) */
+@media (max-width: 480px) {
+  .calendar-container {
+    padding-top: 75px;
+    /* 작은 메뉴 버튼에 맞춰 조정 */
+    height: calc(100vh - 75px);
+  }
+
+  .calendar-header {
+    min-height: 75px;
+  }
+
+  .month-div-inner {
+    padding: 0 3px;
+    gap: 8px;
+    min-height: 65px;
+  }
+
+  .nav-section {
+    gap: 8px;
+  }
+
+  .nav-button {
+    padding: 0 8px;
+    font-size: 13px;
+    height: 20px;
+    min-width: 28px;
+  }
+
+  .nav-button-left::before,
+  .nav-button-right::before,
+  .nav-button-year-left::before,
+  .nav-button-year-right::before {
+    font-size: 14px;
+  }
+
+  .year-display,
+  .month-display {
+    font-size: 16px;
+  }
+
+  .today-button {
+    font-size: 11px;
+    padding: 4px 8px;
+    height: 20px;
+  }
+
+  .square-div {
+    padding: 8px;
+  }
+
+  .inner-body {
+    gap: 4px;
+    padding: 2px;
+  }
+
+  .day-div {
+    min-height: 40px;
+    border-radius: 6px;
+  }
+
+  .day-number {
+    font-size: 13px;
+  }
+
+  .inner-header>div {
+    padding: 8px 0;
+    font-size: 12px;
+  }
+
+  /* 작은 화면에서 이벤트 인디케이터 */
+  .event-indicator {
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+    top: 3px;
+    right: 3px;
+  }
+
+  /* 작은 화면에서 메뉴 버튼 */
+  .menu-button {
+    width: 44px;
+    height: 44px;
+    top: 12px;
+    right: 12px;
+  }
+
+  .menu-icon span {
+    width: 16px;
+  }
+}
+
+/* 태블릿 크기 (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .month-div-inner {
+    padding: 0 8px;
+    flex-direction: column;
+    gap: 10px;
+    height: auto;
+    min-height: 70px;
+    justify-content: center;
+  }
+
+  .date-display-container {
+    order: 1;
+    justify-content: center;
+  }
+
+  .nav-section {
+    position: static;
+    transform: none;
+    gap: 15px;
+    justify-content: center;
+    order: 2;
+  }
+
+  .today-section {
+    order: 3;
+    justify-content: center;
+    margin-left: 0;
+    min-width: auto;
+    margin-top: 5px;
+  }
+
+  .nav-button {
+    padding: 0 14px;
+    font-size: 15px;
+    height: 24px;
+    min-width: 34px;
+  }
+
+  .nav-button-left::before,
+  .nav-button-right::before,
+  .nav-button-year-left::before,
+  .nav-button-year-right::before {
+    font-size: 17px;
+    transform: translateY(-0.5px);
+  }
+
+  .year-display,
+  .month-display {
+    font-size: 20px;
+  }
+
+  .day-div {
+    min-height: 55px;
+  }
+
+  .day-number {
+    font-size: 15px;
   }
 }

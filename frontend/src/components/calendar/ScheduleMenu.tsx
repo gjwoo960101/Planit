@@ -1,11 +1,18 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useModalStore } from "../modal/ModalStore";
+import { getKoreanDayName, ScheduleByYear } from "../../utils/calendarUtils";
+import { useTodoStore } from "../../stores/todoStore";
 import {
-  getSchedulesByYear,
-  getScheduleSummary,
-  getKoreanDayName,
-  ScheduleByYear,
-} from "../../utils/calendarUtils";
+  downloadDataAsFile,
+  loadDataFromFile,
+  getDataStatus,
+  clearAllData as clearAllDataOld,
+  getSchedulesByYearFromData,
+  getScheduleSummaryFromData,
+  generateTestDataToStorage,
+  toggleTodoCompletion as toggleTodoCompletionOld,
+} from "../../utils/dataStorage";
 import "../../styles/ScheduleMenu.css";
 
 interface ScheduleMenuProps {
@@ -14,31 +21,73 @@ interface ScheduleMenuProps {
 }
 
 export const ScheduleMenu = ({ isOpen, onClose }: ScheduleMenuProps) => {
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [schedulesByYear, setSchedulesByYear] = useState<ScheduleByYear>({});
   const [expandedYears, setExpandedYears] = useState<Set<string>>(new Set());
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
+  const [dataStatus, setDataStatus] = useState(getDataStatus());
   const openModal = useModalStore((state) => state.openModal);
+
+  // Zustand 스토어 사용
+  const {
+    schedules,
+    toggleTodoCompletion,
+    clearAllData,
+    generateTestData: generateTestDataFromStore,
+    getAllSchedulesByYear,
+    getScheduleSummary,
+  } = useTodoStore();
 
   // 일정 데이터 로드
   useEffect(() => {
-    if (isOpen) {
-      const schedules = getSchedulesByYear();
-      setSchedulesByYear(schedules);
+    const loadSchedules = async () => {
+      if (isOpen) {
+        try {
+          const schedules = await getSchedulesByYearFromData();
+          setSchedulesByYear(schedules);
 
-      // 현재 년도와 월은 기본으로 확장
-      const currentYear = new Date().getFullYear().toString();
-      const currentMonth = (new Date().getMonth() + 1)
-        .toString()
-        .padStart(2, "0");
-      setExpandedYears(new Set([currentYear]));
-      setExpandedMonths(new Set([`${currentYear}-${currentMonth}`]));
-    }
+          // 현재 년도와 월은 기본으로 확장
+          const currentYear = new Date().getFullYear().toString();
+          const currentMonth = (new Date().getMonth() + 1)
+            .toString()
+            .padStart(2, "0");
+          setExpandedYears(new Set([currentYear]));
+          setExpandedMonths(new Set([`${currentYear}-${currentMonth}`]));
+        } catch (error) {
+          console.error("Error loading schedules:", error);
+          setSchedulesByYear({});
+        }
+      }
+    };
+
+    loadSchedules();
   }, [isOpen]);
 
   // 일정 요약 정보
-  const scheduleSummary = useMemo(() => {
-    return getScheduleSummary();
+  const [scheduleSummary, setScheduleSummary] = useState({
+    totalSchedules: 0,
+    completedSchedules: 0,
+    pendingSchedules: 0,
+  });
+
+  useEffect(() => {
+    const loadSummary = async () => {
+      try {
+        const summary = await getScheduleSummaryFromData();
+        setScheduleSummary(summary);
+      } catch (error) {
+        console.error("Error loading schedule summary:", error);
+        setScheduleSummary({
+          totalSchedules: 0,
+          completedSchedules: 0,
+          pendingSchedules: 0,
+        });
+      }
+    };
+
+    loadSummary();
   }, [schedulesByYear]);
 
   // 검색된 일정들
@@ -102,6 +151,67 @@ export const ScheduleMenu = ({ isOpen, onClose }: ScheduleMenuProps) => {
     onClose();
   };
 
+  const handleLoginClick = () => {
+    navigate("/login");
+    onClose();
+  };
+
+  // JSON 파일 다운로드
+  const handleDownloadData = async () => {
+    try {
+      await downloadDataAsFile();
+    } catch (error) {
+      alert("다운로드에 실패했습니다: " + (error as Error).message);
+    }
+  };
+
+  // JSON 파일 업로드
+  const handleUploadData = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      await loadDataFromFile(file);
+      // 데이터 로드 후 스케줄 새로고침
+      const schedules = await getSchedulesByYearFromData();
+      setSchedulesByYear(schedules);
+      setDataStatus(getDataStatus());
+      alert("데이터가 성공적으로 로드되었습니다!");
+    } catch (error) {
+      alert("파일 로드에 실패했습니다: " + (error as Error).message);
+    }
+
+    // 파일 입력 초기화
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // 모든 데이터 삭제
+  const handleClearAllData = async () => {
+    const confirmDelete = window.confirm(
+      "⚠️ 모든 일정 데이터를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다."
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await clearAllData();
+      const schedules = await getSchedulesByYearFromData();
+      setSchedulesByYear(schedules);
+      setDataStatus(getDataStatus());
+      alert("모든 데이터가 삭제되었습니다.");
+    } catch (error) {
+      alert("데이터 삭제에 실패했습니다: " + (error as Error).message);
+    }
+  };
+
   // 메뉴에서 할일 체크 토글 함수
   const handleToggleTodo = (
     dateString: string,
@@ -110,212 +220,50 @@ export const ScheduleMenu = ({ isOpen, onClose }: ScheduleMenuProps) => {
   ) => {
     e.stopPropagation(); // 상위 클릭 이벤트 방지
 
-    // localStorage에서 해당 날짜의 할일 목록 가져오기
-    const existingTodos = JSON.parse(
-      localStorage.getItem(`todos_${dateString}`) || "[]"
-    );
+    const success = toggleTodoCompletion(dateString, todoIndex);
 
-    // 해당 인덱스의 할일 완료 상태 토글
-    if (existingTodos[todoIndex]) {
-      existingTodos[todoIndex].completed = !existingTodos[todoIndex].completed;
-
-      // localStorage에 저장
-      localStorage.setItem(
-        `todos_${dateString}`,
-        JSON.stringify(existingTodos)
-      );
-
-      // localStorage 변경 이벤트 발생
-      window.dispatchEvent(
-        new CustomEvent("local-storage-changed", {
-          detail: {
-            key: `todos_${dateString}`,
-            date: dateString,
-            todos: existingTodos,
-          },
-        })
-      );
-
+    if (success) {
       // 데이터 다시 로드
-      const schedules = getSchedulesByYear();
+      const schedules = getSchedulesByYearFromData();
       setSchedulesByYear(schedules);
+      setDataStatus(getDataStatus());
     }
   };
 
   // 테스트 데이터 생성 함수
-  const generateTestData = () => {
-    const categories = [
-      { name: "업무", color: "#007bff" },
-      { name: "개인", color: "#28a745" },
-      { name: "운동", color: "#fd7e14" },
-      { name: "공부", color: "#6f42c1" },
-      { name: "기타", color: "#6c757d" },
-    ];
+  const generateTestData = async () => {
+    try {
+      const generatedCount = await generateTestDataFromStore();
 
-    const priorities = ["high", "medium", "low"];
-    const repeats = ["none", "daily", "weekly", "monthly"];
+      // Zustand 스토어에서 최신 데이터 가져오기
+      const newSchedulesByYear = getAllSchedulesByYear();
+      setSchedulesByYear(newSchedulesByYear);
+      setDataStatus(getDataStatus());
 
-    const todoTexts = [
-      "프로젝트 기획서 작성",
-      "팀 미팅 참석",
-      "운동하기 - 헬스장",
-      "영어 공부 1시간",
-      "독서 - 자기계발서",
-      "친구와 저녁 약속",
-      "병원 검진 받기",
-      "쇼핑 - 생필품 구매",
-      "영화 관람",
-      "요리 연습",
-      "블로그 포스팅 작성",
-      "온라인 강의 수강",
-      "부모님께 안부 전화",
-      "자동차 정기 점검",
-      "도서관에서 공부",
-      "요가 클래스 참석",
-      "재정 관리 점검",
-      "새로운 기술 학습",
-      "정리정돈 - 방 청소",
-      "명상 및 휴식",
-      "동네 산책하기",
-      "반려동물 돌보기",
-      "온라인 쇼핑",
-      "게임하기",
-      "음악 감상",
-    ];
-
-    function getRandomDate() {
-      // 현재 년도 기준으로 ±2년 범위에서 랜덤 년도 선택
-      const currentYear = new Date().getFullYear();
-      const yearOffset = Math.floor(Math.random() * 5) - 2; // -2 ~ +2년
-      const randomYear = currentYear + yearOffset;
-
-      // 1~12월 중 완전 랜덤 선택
-      const randomMonth = Math.floor(Math.random() * 12) + 1;
-
-      // 해당 년월의 마지막 날 계산
-      const lastDay = new Date(randomYear, randomMonth, 0).getDate();
-      const randomDay = Math.floor(Math.random() * lastDay) + 1;
-
-      return `${randomMonth}월 ${randomDay}일`;
+      alert(`✅ ${generatedCount}개의 테스트 일정이 생성되었습니다!`);
+    } catch (error) {
+      console.error("테스트 데이터 생성 실패:", error);
+      alert("테스트 데이터 생성에 실패했습니다.");
     }
-
-    function getRandomTime() {
-      const hour = Math.floor(Math.random() * 24);
-      const minute = Math.floor(Math.random() * 4) * 15;
-      return `${hour.toString().padStart(2, "0")}:${minute
-        .toString()
-        .padStart(2, "0")}`;
-    }
-
-    let generatedCount = 0;
-
-    for (let i = 0; i < 20; i++) {
-      const randomDate = getRandomDate();
-      const existingTodos = JSON.parse(
-        localStorage.getItem(`todos_${randomDate}`) || "[]"
-      );
-
-      const category =
-        categories[Math.floor(Math.random() * categories.length)];
-      const hasTime = Math.random() > 0.5;
-      const startTime = hasTime ? getRandomTime() : "";
-
-      const newTodo = {
-        id: existingTodos.length,
-        text: todoTexts[Math.floor(Math.random() * todoTexts.length)],
-        completed: Math.random() > 0.7,
-        estimatedTime: Math.floor(Math.random() * 120) + 15,
-        startTime: startTime,
-        endTime: hasTime
-          ? (() => {
-              const start = new Date(`2000-01-01 ${startTime}`);
-              const end = new Date(
-                start.getTime() +
-                  (Math.floor(Math.random() * 4) + 1) * 30 * 60000
-              );
-              return `${end.getHours().toString().padStart(2, "0")}:${end
-                .getMinutes()
-                .toString()
-                .padStart(2, "0")}`;
-            })()
-          : "",
-        repeat: repeats[Math.floor(Math.random() * repeats.length)],
-        category: category.name,
-        color: category.color,
-        priority: priorities[Math.floor(Math.random() * priorities.length)],
-        order: existingTodos.length,
-      };
-
-      existingTodos.push(newTodo);
-      localStorage.setItem(
-        `todos_${randomDate}`,
-        JSON.stringify(existingTodos)
-      );
-      localStorage.setItem(
-        `nextTodoId_${randomDate}`,
-        existingTodos.length.toString()
-      );
-      generatedCount++;
-    }
-
-    // localStorage 변경 이벤트 발생
-    window.dispatchEvent(
-      new CustomEvent("local-storage-changed", {
-        detail: { key: "todos_test", date: "test", todos: [] },
-      })
-    );
-
-    // 데이터 다시 로드
-    const schedules = getSchedulesByYear();
-    setSchedulesByYear(schedules);
-
-    alert(`✅ ${generatedCount}개의 테스트 일정이 생성되었습니다!`);
   };
 
   // 테스트 데이터 전체 삭제 함수
   const clearAllTestData = () => {
+    const currentStatus = getDataStatus();
+    const totalTodos = currentStatus.totalTodos;
+
     const confirmDelete = window.confirm(
       "⚠️ 모든 일정 데이터를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다."
     );
 
     if (!confirmDelete) return;
 
-    let deletedCount = 0;
-    const keysToDelete: string[] = [];
-
-    // localStorage에서 todos_와 nextTodoId_로 시작하는 모든 키 찾기
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (key.startsWith("todos_") || key.startsWith("nextTodoId_"))) {
-        keysToDelete.push(key);
-        if (key.startsWith("todos_")) {
-          try {
-            const todos = JSON.parse(localStorage.getItem(key) || "[]");
-            deletedCount += todos.length;
-          } catch (error) {
-            console.warn(`Failed to parse todos for key ${key}:`, error);
-          }
-        }
-      }
-    }
-
-    // 찾은 키들 모두 삭제
-    keysToDelete.forEach((key) => {
-      localStorage.removeItem(key);
-    });
-
-    // localStorage 변경 이벤트 발생
-    window.dispatchEvent(
-      new CustomEvent("local-storage-changed", {
-        detail: { key: "todos_cleared", date: "all", todos: [] },
-      })
-    );
-
-    // 데이터 다시 로드
-    const schedules = getSchedulesByYear();
+    clearAllData();
+    const schedules = getSchedulesByYearFromData();
     setSchedulesByYear(schedules);
+    setDataStatus(getDataStatus());
 
-    alert(`🗑️ 총 ${deletedCount}개의 일정이 삭제되었습니다.`);
+    alert(`🗑️ 총 ${totalTodos}개의 일정이 삭제되었습니다.`);
   };
 
   const getMonthName = (month: string) => {
@@ -339,9 +287,14 @@ export const ScheduleMenu = ({ isOpen, onClose }: ScheduleMenuProps) => {
       <div className="schedule-menu" onClick={(e) => e.stopPropagation()}>
         <div className="schedule-menu-header">
           <h2>전체 일정 목록</h2>
-          <button className="close-button" onClick={onClose}>
-            ✕
-          </button>
+          <div className="header-buttons">
+            <button className="login-button" onClick={handleLoginClick}>
+              로그인
+            </button>
+            <button className="close-button" onClick={onClose}>
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="schedule-summary">
@@ -363,6 +316,36 @@ export const ScheduleMenu = ({ isOpen, onClose }: ScheduleMenuProps) => {
               {scheduleSummary.pendingSchedules}개
             </span>
           </div>
+        </div>
+
+        <div className="data-management-section">
+          <div className="data-status">
+            <span className="data-label">저장된 데이터</span>
+            <span className="data-value">
+              {dataStatus.totalDates}일 / {dataStatus.totalTodos}개 일정
+            </span>
+          </div>
+          <div className="data-buttons">
+            <button
+              className="data-button download"
+              onClick={handleDownloadData}
+            >
+              📥 다운로드
+            </button>
+            <button className="data-button upload" onClick={handleUploadData}>
+              📤 업로드
+            </button>
+            <button className="data-button clear" onClick={handleClearAllData}>
+              🗑️ 전체삭제
+            </button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
         </div>
 
         <div className="search-box">
