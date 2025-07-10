@@ -9,10 +9,6 @@ const Calendar = () => {
   const [year, setYear] = useState(nowYear);
   const [month, setMonth] = useState(nowMonth);
 
-  // const handleYearChange = (changeYear: number) => {
-  //   setYear(year + changeYear);
-  // };
-
   const handleMonthChange = (changeMonth: number) => {
     if (changeMonth < 1) {
       setYear(year - 1);
