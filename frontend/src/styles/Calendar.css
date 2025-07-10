@@ -38,12 +38,29 @@
 .month-div-inner {
   color: white;
   display: flex;
-  justify-content: center;
   align-items: center;
   padding: 0 20px;
-  gap: 20px;
   width: 100%;
   height: 100%;
+  position: relative;
+}
+
+.nav-section {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: center;
+}
+
+.today-section {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+  min-width: 80px;
 }
 
 .month-div-inner h2 {
@@ -151,6 +168,16 @@
   color: #333;
 }
 
+/* 일요일 (첫 번째 열) 빨간색 텍스트 */
+.day-div:nth-child(7n+1) .day-number {
+  color: #dc3545 !important;
+}
+
+/* 토요일 (마지막 열) 파란색 텍스트 */
+.day-div:nth-child(7n) .day-number {
+  color: #007bff !important;
+}
+
 /* 일정이 있는 셀 스타일 */
 .day-div.has-events {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -194,6 +221,108 @@
 /* 현재 달 */
 .day-div.current-month {
   opacity: 1;
+}
+
+/* 공휴일 스타일 */
+.day-div.holiday {
+  background: linear-gradient(135deg, #ff9999 0%, #ffb3b3 100%) !important;
+  border: 2px solid #ff6666 !important;
+  color: #cc0000 !important;
+  position: relative;
+}
+
+.day-div.holiday .day-number {
+  color: #cc0000 !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+}
+
+.day-div.holiday:hover {
+  background: linear-gradient(135deg, #ff8080 0%, #ff9999 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 16px rgba(255, 102, 102, 0.4) !important;
+}
+
+/* 공휴일에 일정이 있을 때 */
+.day-div.holiday.has-events {
+  background: linear-gradient(135deg, #ff9999 0%, #ffb3b3 100%) !important;
+  border: 2px solid #ff6666 !important;
+  box-shadow: 0 0 0 1px #ff6666, 0 4px 12px rgba(255, 102, 102, 0.3) !important;
+}
+
+.day-div.holiday.has-events .event-indicator {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #cc0000 !important;
+  border: 1px solid #ff6666 !important;
+  font-weight: 700 !important;
+}
+
+/* 오늘 날짜가 공휴일인 경우 (오늘 날짜 스타일이 우선) */
+.day-div.today.holiday {
+  background: linear-gradient(135deg, #ffb3ba 0%, #ffccd5 100%) !important;
+  border: 2px solid #ff9aaa !important;
+}
+
+/* 이전/다음 달 공휴일 */
+.day-div.prev-month.holiday,
+.day-div.next-month.holiday {
+  background: linear-gradient(135deg, #ffcccc 0%, #ffe6e6 100%) !important;
+  opacity: 0.6 !important;
+  border-color: #ffb3b3 !important;
+}
+
+.day-div.prev-month.holiday .day-number,
+.day-div.next-month.holiday .day-number {
+  color: #999 !important;
+}
+
+/* 오늘 날짜 스타일 */
+.day-div.today {
+  background: linear-gradient(135deg, #87ceeb 0%, #b3d9f0 100%) !important;
+  border: 2px solid #4a90e2 !important;
+  color: #1e40af !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4) !important;
+  animation: todayPulse 2s ease-in-out infinite;
+}
+
+.day-div.today .day-number {
+  color: #1e40af !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  font-weight: 600 !important;
+}
+
+.day-div.today:hover {
+  background: linear-gradient(135deg, #6cb4e8 0%, #9cc9ed 100%) !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5) !important;
+}
+
+/* 오늘 날짜에 일정이 있을 때 */
+.day-div.today.has-events {
+  background: linear-gradient(135deg, #87ceeb 0%, #b3d9f0 100%) !important;
+  border: 2px solid #4a90e2 !important;
+  box-shadow: 0 0 0 1px #4a90e2, 0 4px 16px rgba(74, 144, 226, 0.4) !important;
+}
+
+.day-div.today.has-events .event-indicator {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1e40af !important;
+  border: 1px solid #4a90e2 !important;
+  font-weight: 700 !important;
+}
+
+/* 오늘 날짜 애니메이션 */
+@keyframes todayPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 4px 16px rgba(74, 144, 226, 0.6);
+  }
 }
 
 /* 이전/다음 달 */
@@ -254,6 +383,33 @@
   font-size: 20px;
 }
 
+/* 오늘 버튼 스타일 */
+.today-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.today-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.today-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
 /* 일정추가 모달 */
 .modal-overlay {
   position: fixed;
@@ -273,10 +429,10 @@
   background-color: white;
   border-radius: 16px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-  width: 70vw;
-  max-width: 800px;
-  height: 75vh;
-  max-height: 600px;
+  width: 84vw;
+  max-width: 960px;
+  height: 90vh;
+  max-height: 720px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -364,6 +520,23 @@
   .nav-button {
     padding: 10px 12px;
     font-size: 14px;
+  }
+
+  .today-button {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .nav-section {
+    gap: 15px;
+  }
+
+  .today-section {
+    min-width: 60px;
+  }
+
+  .month-div-inner {
+    padding: 0 10px;
   }
 }
 
@@ -1560,6 +1733,39 @@
 .modal-body-new {
   z-index: 1002;
   position: relative;
+}
+
+/* 이모지 피커 스타일 개선 */
+.emoji-picker {
+  position: fixed !important;
+  z-index: 9999 !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  border: 2px solid #e9ecef !important;
+}
+
+.emoji-picker em-emoji-picker {
+  max-height: 350px !important;
+  min-height: 350px !important;
+}
+
+/* 렉시컬 에디터 툴바 개선 */
+.text-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-bottom: 1px solid #e9ecef;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 10;
+}
+
+.toolbar-btn.active {
+  background: #007bff !important;
+  color: white !important;
+  border-color: #007bff !important;
 }
 
 /* 스크롤바 완전 제거 */

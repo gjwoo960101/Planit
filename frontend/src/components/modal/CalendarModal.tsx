@@ -12,6 +12,7 @@ import {
 import { AchievementSection } from "../calendar/AchievementSection";
 import { CategoryFilter } from "../calendar/CategoryFilter";
 import { TodoList } from "../calendar/TodoList";
+import { LexicalEditor } from "../calendar/LexicalEditor";
 import "../../styles/CalendarModal.css";
 
 export const CalendarModal = () => {
@@ -45,17 +46,6 @@ export const CalendarModal = () => {
   const draggedOverItem = useRef<TodoItem | null>(null);
   const [draggedItemId, setDraggedItemId] = useState<number | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<number | null>(null);
-
-  // 텍스트 포맷팅 함수 추가
-  const insertTextAtCursor = (prefix: string, suffix: string = "") => {
-    if (!editingTodo) return;
-
-    // 임시로 textarea를 만들어서 선택 범위 처리
-    const currentText = editingTodo.text;
-    const newText = currentText + prefix + suffix;
-
-    setEditingTodo((prev) => (prev ? { ...prev, text: newText } : null));
-  };
 
   // 전체 달성률 계산 (필터와 상관없이)
   const { totalAchievementPercentage } = useMemo(() => {
@@ -195,6 +185,11 @@ export const CalendarModal = () => {
       return () => clearTimeout(timer);
     } else {
       setAnimateIn(false);
+      // 모달이 닫힐 때 상태 리셋
+      setShowAddForm(false);
+      setShowEditModal(false);
+      setEditingTodo(null);
+      setEditingTodoId(null);
     }
   }, [isOpen]);
 
@@ -315,6 +310,10 @@ export const CalendarModal = () => {
   const handleEditModalCancel = () => {
     setShowEditModal(false);
     setEditingTodo(null);
+  };
+
+  const handleEditingTodoTextChange = (value: string) => {
+    setEditingTodo((prev) => (prev ? { ...prev, text: value } : null));
   };
 
   // 드래그 앤 드롭 핸들러
@@ -479,62 +478,12 @@ export const CalendarModal = () => {
                 <div className="form-row">
                   <div className="form-group">
                     <label>할일 내용</label>
-                    <div className="enhanced-text-editor">
-                      {/* 텍스트 포맷팅 툴바 */}
-                      <div className="text-toolbar">
-                        <button
-                          type="button"
-                          className="toolbar-btn"
-                          onClick={() => insertTextAtCursor("**", "**")}
-                          title="굵게"
-                        >
-                          <strong>B</strong>
-                        </button>
-                        <button
-                          type="button"
-                          className="toolbar-btn"
-                          onClick={() => insertTextAtCursor("*", "*")}
-                          title="기울임"
-                        >
-                          <em>I</em>
-                        </button>
-                        <button
-                          type="button"
-                          className="toolbar-btn"
-                          onClick={() => insertTextAtCursor("• ")}
-                          title="목록"
-                        >
-                          ••
-                        </button>
-                        <button
-                          type="button"
-                          className="toolbar-btn"
-                          onClick={() => insertTextAtCursor("✓ ")}
-                          title="체크리스트"
-                        >
-                          ✓
-                        </button>
-                        <button
-                          type="button"
-                          className="toolbar-btn"
-                          onClick={() => insertTextAtCursor("😊")}
-                          title="이모지"
-                        >
-                          😊
-                        </button>
-                      </div>
-
-                      <textarea
-                        value={editingTodo.text}
-                        onChange={(e) =>
-                          setEditingTodo((prev) =>
-                            prev ? { ...prev, text: e.target.value } : null
-                          )
-                        }
-                        className="enhanced-textarea-fixed"
-                        placeholder="할일을 입력하세요...&#10;• 목록 형태로 입력 가능&#10;✓ 체크리스트 형태로 입력 가능&#10;**굵게**, *기울임* 마크다운 지원&#10;😊 이모지 사용 가능"
-                      />
-                    </div>
+                    <LexicalEditor
+                      onChange={handleEditingTodoTextChange}
+                      placeholder="할 일을 입력하세요...&#10;• 목록 형태로 입력 가능&#10;✓ 체크리스트 형태로 입력 가능&#10;**굵게**, *기울임* 지원&#10;😊 이모지 사용 가능"
+                      className="focused"
+                      value={editingTodo.text}
+                    />
                   </div>
                 </div>
 

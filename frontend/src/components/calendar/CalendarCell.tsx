@@ -5,13 +5,27 @@ import {
   processRepeatingTodos,
 } from "../../utils/calendarUtils";
 import { useMemo, useEffect, useState } from "react";
+import { HolidayInfo } from "../../utils/holidays";
 
 interface CalendarCellProps {
   data: CalendarCellType;
   currentMonth: number;
+  currentYear: number;
+  today: {
+    year: number;
+    month: number;
+    date: number;
+  };
+  holidays: HolidayInfo[];
 }
 
-export const CalendarCell = ({ data, currentMonth }: CalendarCellProps) => {
+export const CalendarCell = ({
+  data,
+  currentMonth,
+  currentYear,
+  today,
+  holidays,
+}: CalendarCellProps) => {
   const openModal = useModalStore((state) => state.openModal);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -21,7 +35,25 @@ export const CalendarCell = ({ data, currentMonth }: CalendarCellProps) => {
     ? "next-month"
     : "current-month";
 
-  // Calculate the actual month and year based on cell type
+  // 오늘 날짜인지 확인
+  const isToday =
+    !data.isPrevMonth &&
+    !data.isNextMonth &&
+    currentYear === today.year &&
+    currentMonth === today.month &&
+    data.date === today.date;
+
+  // 실제 연도/월 계산 (이전달/다음달 고려)
+  const actualYear = data.isPrevMonth
+    ? currentMonth === 1
+      ? currentYear - 1
+      : currentYear
+    : data.isNextMonth
+    ? currentMonth === 12
+      ? currentYear + 1
+      : currentYear
+    : currentYear;
+
   const actualMonth = data.isPrevMonth
     ? currentMonth === 1
       ? 12
@@ -31,6 +63,14 @@ export const CalendarCell = ({ data, currentMonth }: CalendarCellProps) => {
       ? 1
       : currentMonth + 1
     : currentMonth;
+
+  // 공휴일인지 확인
+  const isHoliday = useMemo(() => {
+    const dateString = `${actualYear}-${actualMonth
+      .toString()
+      .padStart(2, "0")}-${data.date.toString().padStart(2, "0")}`;
+    return holidays.some((holiday) => holiday.date === dateString);
+  }, [actualYear, actualMonth, data.date, holidays]);
 
   const dateString = `${actualMonth}월 ${data.date}일`;
 
@@ -87,10 +127,12 @@ export const CalendarCell = ({ data, currentMonth }: CalendarCellProps) => {
 
   // 일정이 있는지 여부에 따른 클래스
   const hasEventsClass = todoCount > 0 ? "has-events" : "";
+  const todayClass = isToday ? "today" : "";
+  const holidayClass = isHoliday ? "holiday" : "";
 
   return (
     <div
-      className={`day-div ${stateClass} ${hasEventsClass}`}
+      className={`day-div ${stateClass} ${hasEventsClass} ${todayClass} ${holidayClass}`}
       onClick={() => openModal(`${actualMonth}월 ${data.date}일`)}
     >
       <div className="day-content">

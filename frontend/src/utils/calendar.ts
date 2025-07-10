@@ -66,6 +66,20 @@ export const getNowYearAndMonth = () =>{
     }
 }
 
+/**
+ * 현재 날짜 정보를 반환
+ * @returns 현재 년도, 월, 일
+ */
+export const getToday = () => {
+    const date = new Date();
+    
+    return {
+        year: date.getFullYear(),
+        month: date.getMonth() + 1,
+        date: date.getDate()
+    };
+}
+
 
 /**
  * 캘린더 세팅 

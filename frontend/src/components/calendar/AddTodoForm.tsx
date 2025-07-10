@@ -1,6 +1,7 @@
 import { NewTodoForm } from "../../types/calendar";
 import { CATEGORIES, PRIORITIES } from "../../utils/calendarConstants";
 import { useState } from "react";
+import { LexicalEditor } from "./LexicalEditor";
 
 interface AddTodoFormProps {
   showAddForm: boolean;
@@ -23,13 +24,6 @@ export const AddTodoForm = ({
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);
   const minuteOptions = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
-  // 텍스트 포맷팅 함수
-  const insertTextAtCursor = (prefix: string, suffix: string = "") => {
-    const currentText = newTodo.text;
-    const newText = currentText + prefix + suffix;
-    onNewTodoChange((prev) => ({ ...prev, text: newText }));
-  };
-
   if (!showAddForm) return null;
 
   return (
@@ -37,65 +31,15 @@ export const AddTodoForm = ({
       <div className="form-row">
         <div className="form-group">
           <label>할일 내용</label>
-          <div className="enhanced-text-editor">
-            {/* 텍스트 포맷팅 툴바 */}
-            <div className="text-toolbar">
-              <button
-                type="button"
-                className="toolbar-btn"
-                onClick={() => insertTextAtCursor("**", "**")}
-                title="굵게"
-              >
-                <strong>B</strong>
-              </button>
-              <button
-                type="button"
-                className="toolbar-btn"
-                onClick={() => insertTextAtCursor("*", "*")}
-                title="기울임"
-              >
-                <em>I</em>
-              </button>
-              <button
-                type="button"
-                className="toolbar-btn"
-                onClick={() => insertTextAtCursor("• ")}
-                title="목록"
-              >
-                ••
-              </button>
-              <button
-                type="button"
-                className="toolbar-btn"
-                onClick={() => insertTextAtCursor("✓ ")}
-                title="체크리스트"
-              >
-                ✓
-              </button>
-              <button
-                type="button"
-                className="toolbar-btn"
-                onClick={() => insertTextAtCursor("😊")}
-                title="이모지"
-              >
-                😊
-              </button>
-            </div>
-
-            <textarea
-              placeholder="할 일을 입력하세요...&#10;• 목록 형태로 입력 가능&#10;✓ 체크리스트 형태로 입력 가능&#10;**굵게**, *기울임* 마크다운 지원&#10;😊 이모지 사용 가능"
-              value={newTodo.text}
-              onChange={(e) => {
-                onNewTodoChange((prev) => ({ ...prev, text: e.target.value }));
-              }}
-              onFocus={() => setIsTextareaFocused(true)}
-              onBlur={() => setIsTextareaFocused(false)}
-              className={`enhanced-textarea ${
-                isTextareaFocused ? "focused" : ""
-              }`}
-              rows={4}
-            />
-          </div>
+          <LexicalEditor
+            onChange={(value) => {
+              onNewTodoChange((prev) => ({ ...prev, text: value }));
+            }}
+            onFocus={() => setIsTextareaFocused(true)}
+            onBlur={() => setIsTextareaFocused(false)}
+            placeholder="할 일을 입력하세요...&#10;• 목록 형태로 입력 가능&#10;✓ 체크리스트 형태로 입력 가능&#10;**굵게**, *기울임* 지원&#10;😊 이모지 사용 가능"
+            className={isTextareaFocused ? "focused" : ""}
+          />
         </div>
       </div>
 
